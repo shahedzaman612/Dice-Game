@@ -13,11 +13,7 @@ export class CryptoUtils {
   }
 
   static secureRandomInt(range) {
-    while (true) {
-      const val = crypto.randomBytes(1)[0];
-      if (val < Math.floor(256 / range) * range) {
-        return val % range;
-      }
-    }
+    if (range <= 0) throw new Error("Range must be positive.");
+    return crypto.randomInt(range);
   }
 }
