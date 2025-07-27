@@ -12,8 +12,4 @@ export class CryptoUtils {
       .digest("hex");
   }
 
-  static secureRandomInt(range) {
-    if (range <= 0) throw new Error("Range must be positive.");
-    return crypto.randomInt(range);
-  }
 }

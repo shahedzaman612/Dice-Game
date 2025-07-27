@@ -1,9 +1,10 @@
 import { CryptoUtils } from "./CryptoUtils.js";
+import{randomInt} from "crypto";
 
 export class FairCommitment {
   constructor(range) {
     this.secretKey = CryptoUtils.randomBytes();
-    this.computerNumber = CryptoUtils.secureRandomInt(range);
+    this.computerNumber = randomInt(range);
     this.hmac = CryptoUtils.hmacSha3(this.secretKey, this.computerNumber);
   }
 
