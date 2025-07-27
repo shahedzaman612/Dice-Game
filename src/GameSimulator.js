@@ -16,12 +16,25 @@ export class GameSimulator {
     console.log("Let's determine who picks first.");
     const commit = new FairCommitment(2);
     console.log(`I selected a number in 0..1 (HMAC=${commit.getCommitment()})`);
-    let guess = readline.question("Try to guess my selection (0 or 1): ");
-    if (guess === "X") process.exit();
-    const result = commit.resolve(parseInt(guess), 2);
+
+    let guess;
+    while (true) {
+      const input = readline
+        .question("Try to guess my selection (0 or 1, X to exit): ")
+        .trim()
+        .toUpperCase();
+      if (input === "X") process.exit();
+      if (input === "0" || input === "1") {
+        guess = parseInt(input);
+        break;
+      }
+      console.log("Invalid input. Please enter 0 or 1.");
+    }
+
+    const result = commit.resolve(guess, 2);
     const reveal = commit.reveal();
     console.log(`My selection: ${reveal.number} (KEY=${reveal.key})`);
-    return reveal.number === parseInt(guess);
+    return reveal.number === guess;
   }
 
   async start() {
@@ -31,7 +44,31 @@ export class GameSimulator {
     if (userGoesFirst) {
       console.log("You go first. Choose your die:");
       this.diceSet.printAll();
-      const userChoice = parseInt(readline.question("Your selection: "));
+
+      let userChoice;
+      while (true) {
+        const input = readline
+          .question("Your selection (or ? for help, X to exit): ")
+          .trim()
+          .toUpperCase();
+        if (input === "X") process.exit();
+        if (input === "?") {
+          const matrix = ProbabilityCalculator.computeMatrix(
+            this.diceSet.all()
+          );
+          ProbabilityTablePrinter.print(matrix);
+          continue;
+        }
+
+        const index = parseInt(input);
+        if (!isNaN(index) && index >= 0 && index < this.diceSet.count()) {
+          userChoice = index;
+          break;
+        }
+
+        console.log("❌ Invalid choice. Please try again.");
+      }
+
       this.user.chooseDie(userChoice);
 
       console.log("Computer selects a different die...");
@@ -48,7 +85,36 @@ export class GameSimulator {
 
       console.log("Your turn. Choose a different die:");
       this.diceSet.printAll(compChoice);
-      const userChoice = parseInt(readline.question("Your selection: "));
+
+      let userChoice;
+      while (true) {
+        const input = readline
+          .question("Your selection (or ? for help, X to exit): ")
+          .trim()
+          .toUpperCase();
+        if (input === "X") process.exit();
+        if (input === "?") {
+          const matrix = ProbabilityCalculator.computeMatrix(
+            this.diceSet.all()
+          );
+          ProbabilityTablePrinter.print(matrix);
+          continue;
+        }
+
+        const index = parseInt(input);
+        if (
+          !isNaN(index) &&
+          index >= 0 &&
+          index < this.diceSet.count() &&
+          index !== compChoice
+        ) {
+          userChoice = index;
+          break;
+        }
+
+        console.log("❌ Invalid choice. Must be a different die. Try again.");
+      }
+
       this.user.chooseDie(userChoice);
     }
 
@@ -56,12 +122,18 @@ export class GameSimulator {
     const compDie = this.diceSet.get(this.computer.getDieIndex());
 
     console.log("\n--- Computer's Roll ---");
-    const compIndex = await FairRandomProtocol.perform(compDie.faceCount(), "computer");
+    const compIndex = await FairRandomProtocol.perform(
+      compDie.faceCount(),
+      "computer"
+    );
     const compRoll = compDie.roll(compIndex);
     console.log(`Computer's face: ${compRoll}`);
 
     console.log("\n--- Your Roll ---");
-    const userIndex = await FairRandomProtocol.perform(userDie.faceCount(), "your");
+    const userIndex = await FairRandomProtocol.perform(
+      userDie.faceCount(),
+      "your"
+    );
     const userRoll = userDie.roll(userIndex);
     console.log(`Your face: ${userRoll}`);
 
@@ -70,4 +142,3 @@ export class GameSimulator {
     else console.log("🤝 It's a tie!");
   }
 }
-

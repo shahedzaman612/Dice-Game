@@ -6,7 +6,10 @@ export class CryptoUtils {
   }
 
   static hmacSha3(key, message) {
-    return crypto.createHmac("sha3-256", key).update(Buffer.from([message])).digest("hex");
+    return crypto
+      .createHmac("sha3-256", key)
+      .update(Buffer.from([message]))
+      .digest("hex");
   }
 
   static secureRandomInt(range) {
